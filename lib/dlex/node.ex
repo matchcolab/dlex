@@ -280,44 +280,6 @@ defmodule Dlex.Node do
 
   defp gen_opt({key, value}, _type), do: [{Atom.to_string(key), value}]
 
-  defp postprocess() do
-    quote unquote: false do
-      defstruct [:uid | @fields_struct]
-
-      fields = Enum.reverse(@fields)
-      source = @name
-      alter = Dlex.Node.__schema_alter___(__MODULE__, source)
-
-      def __schema__(:source), do: unquote(source)
-      def __schema__(:fields), do: unquote(fields)
-      def __schema__(:alter), do: unquote(Macro.escape(alter))
-      def __schema__(:depends_on), do: unquote(Dlex.Node.__depends_on_modules__(__MODULE__))
-
-      for %Dlex.Field{name: name, type: type} <- @fields_data do
-        def __schema__(:type, unquote(name)), do: unquote(type)
-      end
-
-      def __schema__(:type, _), do: nil
-
-      for %Dlex.Field{name: name, db_name: db_name, type: type} <- @fields_data do
-        def __schema__(:field, unquote(name)), do: unquote(db_name)
-        def __schema__(:field, unquote(db_name)), do: {unquote(name), unquote(type)}
-      end
-
-      def __schema__(:field, _), do: nil
-
-      changeset = Dlex.Node.__gen_changeset__(@fields_data)
-      def __changeset__(), do: unquote(Macro.escape(changeset))
-
-      def changeset(struct, attrs) do
-        struct
-        |> Ecto.Changeset.cast(attrs, Enum.map(@fields, &elem(&1, 0)))
-        |> Dlex.Node.cast_multilingual_fields(attrs, @multilingual_fields)
-        |> Ecto.Changeset.validate_required(@fields |> Enum.map(&elem(&1, 0)))
-      end
-    end
-  end
-
   defp cast_multilingual_fields(changeset, attrs, fields) do
     Enum.reduce(fields, changeset, fn field, acc ->
       lang_keys =
@@ -329,7 +291,7 @@ defmodule Dlex.Node do
         end)
 
       case Enum.find(attrs, fn {key, _value} -> key == Atom.to_string(field) end) do
-        {key, value} -> put_change(acc, field, value)
+        {_key, value} -> put_change(acc, field, value)
         nil -> acc
       end
     end)
