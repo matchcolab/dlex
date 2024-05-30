@@ -62,6 +62,7 @@ defmodule Dlex.Node do
   Additionally, it generates `Ecto` compatible `__changeset__` for using with `Ecto.Changeset`.
   """
 
+  import Ecto.Changeset, only: [put_change: 3]
   alias Dlex.Field
 
   defmacro __using__(opts) do
@@ -141,8 +142,25 @@ defmodule Dlex.Node do
       def changeset(struct, attrs) do
         struct
         |> Ecto.Changeset.cast(attrs, Enum.map(@fields, &elem(&1, 0)))
-        |> Dlex.Node.cast_multilingual_fields(attrs, @multilingual_fields)
+        |> cast_multilingual_fields(attrs, @multilingual_fields)
         |> Ecto.Changeset.validate_required(@fields |> Enum.map(&elem(&1, 0)))
+      end
+
+      defp cast_multilingual_fields(changeset, attrs, fields) do
+        Enum.reduce(fields, changeset, fn field, acc ->
+          lang_keys =
+            Enum.filter(attrs, fn {key, _value} -> String.starts_with?(key, "#{field}@") end)
+
+          acc =
+            Enum.reduce(lang_keys, acc, fn {key, value}, changeset_acc ->
+              put_change(changeset_acc, String.to_atom(key), value)
+            end)
+
+          case Enum.find(attrs, fn {key, _value} -> key == Atom.to_string(field) end) do
+            {_key, value} -> put_change(acc, field, value)
+            nil -> acc
+          end
+        end)
       end
     end
   end
@@ -279,21 +297,4 @@ defmodule Dlex.Node do
     do: [{"index", true}, {"tokenizer", tokenizers}]
 
   defp gen_opt({key, value}, _type), do: [{Atom.to_string(key), value}]
-
-  defp cast_multilingual_fields(changeset, attrs, fields) do
-    Enum.reduce(fields, changeset, fn field, acc ->
-      lang_keys =
-        Enum.filter(attrs, fn {key, _value} -> String.starts_with?(key, "#{field}@") end)
-
-      acc =
-        Enum.reduce(lang_keys, acc, fn {key, value}, changeset_acc ->
-          put_change(changeset_acc, String.to_atom(key), value)
-        end)
-
-      case Enum.find(attrs, fn {key, _value} -> key == Atom.to_string(field) end) do
-        {_key, value} -> put_change(acc, field, value)
-        nil -> acc
-      end
-    end)
-  end
 end
