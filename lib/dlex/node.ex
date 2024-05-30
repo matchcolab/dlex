@@ -1,6 +1,6 @@
 defmodule Dlex.Node do
   @moduledoc """
-  Simple high level API for accessing graphs
+  Simple high-level API for accessing graphs.
 
   ## Usage
 
@@ -9,7 +9,7 @@ defmodule Dlex.Node do
 
       shared do
         field :id, :string, index: ["term"]
-        field :name, :string, index: ["term"]
+        field :name, {:lang, :string}, index: ["term"]
       end
     end
 
@@ -27,7 +27,7 @@ defmodule Dlex.Node do
 
       schema "user" do
         field :id, :auto, depends_on: Shared
-        field :name, :string, index: ["term"]
+        field :name, {:lang, :string}, index: ["term"]
         field :age, :integer
         field :cache, :any, virtual: true
         field :owns, :uid
@@ -42,6 +42,10 @@ defmodule Dlex.Node do
       * `:geo`
       * `:datetime`
       * `:uid`
+      * `:bool`
+      * `:password`
+      * `:default`
+      * `{:lang, :string}`
       * `:auto` - special type, which can be used for `depends_on`
 
   ## Reflection
@@ -51,15 +55,11 @@ defmodule Dlex.Node do
 
   * `__schema__(:source)` - Returns the source as given to `schema/2`;
   * `__schema__(:fields)` - Returns a list of all non-virtual field names;
-  * `__schema__(:alter)` - Returns a generated alter schema
-
-  * `__schema__(:field, field)` - Returns the name of field in database for field in a struct and
-    vice versa;
-
+  * `__schema__(:alter)` - Returns a generated alter schema;
+  * `__schema__(:field, field)` - Returns the name of field in database for field in a struct and vice versa;
   * `__schema__(:type, field)` - Returns the type of the given non-virtual field;
 
-  Additionally it generates `Ecto` compatible `__changeset__` for using with `Ecto.Changeset`.
-
+  Additionally, it generates `Ecto` compatible `__changeset__` for using with `Ecto.Changeset`.
   """
 
   alias Dlex.Field
@@ -70,7 +70,8 @@ defmodule Dlex.Node do
     quote do
       @depends_on unquote(depends_on)
 
-      import Dlex.Node, only: [shared: 1, schema: 2]
+      import Dlex.Node, only: [shared: 1, schema: 2, field: 3]
+      Module.register_attribute(__MODULE__, :multilingual_fields, accumulate: true)
     end
   end
 
@@ -181,6 +182,10 @@ defmodule Dlex.Node do
 
   defmacro field(name, type, opts \\ []) do
     quote do
+      if unquote(type) == {:lang, :string} do
+        Module.put_attribute(__MODULE__, :multilingual_fields, unquote(name))
+      end
+
       Dlex.Node.__field__(__MODULE__, unquote(name), unquote(type), unquote(opts), @depends_on)
     end
   end
@@ -234,12 +239,15 @@ defmodule Dlex.Node do
   end
 
   @types_mapping [
-    integer: "int",
+    int: "int",
     float: "float",
     string: "string",
     geo: "geo",
     datetime: "datetime",
-    uid: "[uid]"
+    uid: "[uid]",
+    bool: "bool",
+    password: "password",
+    default: "default"
   ]
 
   for {type, dgraph_type} <- @types_mapping do
@@ -248,6 +256,8 @@ defmodule Dlex.Node do
 
   @primitive_types Keyword.keys(@types_mapping)
   def primitive_type?(type), do: type in @primitive_types
+
+  defp db_type({:lang, :string}), do: "string"
 
   defp db_type(type) do
     if primitive_type?(type), do: primitive_type(type), else: primitive_type(type.type)
@@ -261,4 +271,59 @@ defmodule Dlex.Node do
     do: [{"index", true}, {"tokenizer", tokenizers}]
 
   defp gen_opt({key, value}, _type), do: [{Atom.to_string(key), value}]
+
+  defp postprocess() do
+    quote unquote: false do
+      defstruct [:uid | @fields_struct]
+
+      fields = Enum.reverse(@fields)
+      source = @name
+      alter = Dlex.Node.__schema_alter___(__MODULE__, source)
+
+      def __schema__(:source), do: unquote(source)
+      def __schema__(:fields), do: unquote(fields)
+      def __schema__(:alter), do: unquote(Macro.escape(alter))
+      def __schema__(:depends_on), do: unquote(Dlex.Node.__depends_on_modules__(__MODULE__))
+
+      for %Dlex.Field{name: name, type: type} <- @fields_data do
+        def __schema__(:type, unquote(name)), do: unquote(type)
+      end
+
+      def __schema__(:type, _), do: nil
+
+      for %Dlex.Field{name: name, db_name: db_name, type: type} <- @fields_data do
+        def __schema__(:field, unquote(name)), do: unquote(db_name)
+        def __schema__(:field, unquote(db_name)), do: {unquote(name), unquote(type)}
+      end
+
+      def __schema__(:field, _), do: nil
+
+      changeset = Dlex.Node.__gen_changeset__(@fields_data)
+      def __changeset__(), do: unquote(Macro.escape(changeset))
+
+      def changeset(struct, attrs) do
+        struct
+        |> Ecto.Changeset.cast(attrs, Enum.map(@fields, &elem(&1, 0)))
+        |> Dlex.Node.cast_multilingual_fields(attrs, @multilingual_fields)
+        |> Ecto.Changeset.validate_required(@fields |> Enum.map(&elem(&1, 0)))
+      end
+    end
+  end
+
+  defp cast_multilingual_fields(changeset, attrs, fields) do
+    Enum.reduce(fields, changeset, fn field, acc ->
+      lang_keys =
+        Enum.filter(attrs, fn {key, _value} -> String.starts_with?(key, "#{field}@") end)
+
+      acc =
+        Enum.reduce(lang_keys, acc, fn {key, value}, changeset_acc ->
+          put_change(changeset_acc, String.to_atom(key), value)
+        end)
+
+      case Enum.find(attrs, fn {key, _value} -> key == Atom.to_string(field) end) do
+        {key, value} -> put_change(acc, field, value)
+        nil -> acc
+      end
+    end)
+  end
 end

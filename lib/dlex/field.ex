@@ -10,6 +10,7 @@ defmodule Dlex.Field do
           | :password
           | :default
           | {:lang, :string}
+          | :auto
 
   @type t :: %__MODULE__{
           name: atom(),
