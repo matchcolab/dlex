@@ -75,10 +75,12 @@ defmodule Dlex.Type.Mutation do
   @impl true
   def decode(
         %Query{statement: statement, json: json_lib, type: Dlex.Type.Mutation} = _query,
-        %Response{uids: uids, json: json} = _result,
+        %Response{json: json} = _result,
         opts
       ) do
-    result = %{uids: uids, queries: parse_json(json_lib, json)}
+    parsed_json = parse_json(json_lib, json)
+    uids = parsed_json["uids"]
+    result = %{uids: uids, queries: parsed_json}
 
     if opts[:return_json] do
       [mutation] = statement
