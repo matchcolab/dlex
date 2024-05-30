@@ -137,6 +137,13 @@ defmodule Dlex.Node do
 
       changeset = Dlex.Node.__gen_changeset__(@fields_data)
       def __changeset__(), do: unquote(Macro.escape(changeset))
+
+      def changeset(struct, attrs) do
+        struct
+        |> Ecto.Changeset.cast(attrs, Enum.map(@fields, &elem(&1, 0)))
+        |> Dlex.Node.cast_multilingual_fields(attrs, @multilingual_fields)
+        |> Ecto.Changeset.validate_required(@fields |> Enum.map(&elem(&1, 0)))
+      end
     end
   end
 
@@ -239,7 +246,7 @@ defmodule Dlex.Node do
   end
 
   @types_mapping [
-    int: "int",
+    integer: "int",
     float: "float",
     string: "string",
     geo: "geo",
@@ -247,7 +254,8 @@ defmodule Dlex.Node do
     uid: "[uid]",
     bool: "bool",
     password: "password",
-    default: "default"
+    default: "default",
+    auto: "uid"
   ]
 
   for {type, dgraph_type} <- @types_mapping do
