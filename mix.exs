@@ -36,8 +36,7 @@ defmodule Dlex.MixProject do
       {:ecto, "~> 3.11", optional: true},
       {:earmark, "~> 1.4", only: :dev},
       {:exrun, "~> 0.1.0", only: :dev},
-      {:ex_doc, "~> 0.27", only: :dev},
-      {:protobuf, "~> 0.12.0"}
+      {:ex_doc, "~> 0.27", only: :dev}
     ]
   end
 
