@@ -29,11 +29,11 @@ defmodule Dlex.Type.Mutation do
     %Query{statement: mutations, query: query, txn_context: txn, json: json} = query
     {commit, start_ts} = transaction_opts(txn)
 
-    %Request{
+    Request.new(
       start_ts: start_ts,
       query: build_query_string(mutations, query, commit),
       vars: Utils.encode_vars(vars)
-    }
+    )
   end
 
   defp build_query_string(mutations, query, commit_now) do
