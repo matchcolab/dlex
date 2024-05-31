@@ -4,8 +4,8 @@ defmodule Dlex.MixProject do
   def project do
     [
       app: :dlex,
-      version: "0.5.1",
-      elixir: "~> 1.7",
+      version: "1.0.0",
+      elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: description(),
@@ -46,9 +46,10 @@ defmodule Dlex.MixProject do
 
   defp package do
     [
-      maintainers: ["Dmitry Russ(Aleksandrov)", "Eric Hagman"],
+      maintainers: ["Gorav Bhootra"],
+      previous_maintainers: ["Dmitry Russ(Aleksandrov)", "Eric Hagman"],
       licenses: ["Apache 2.0"],
-      links: %{"Github" => "https://github.com/liveforeverx/dlex"}
+      links: %{"Github" => "https://github.com/matchcolab/dlex"}
     ]
   end
 
