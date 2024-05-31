@@ -28,7 +28,7 @@ defmodule Dlex.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:db_connection, "~> 2.1"},
+      {:db_connection, "~> 2.6"},
       {:grpc, "~> 0.3.1"},
       {:jason, "~> 1.0", optional: true},
       {:mint, "~> 1.0", optional: true},

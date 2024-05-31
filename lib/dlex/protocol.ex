@@ -49,10 +49,10 @@ defmodule Dlex.Protocol do
     {:ok, state}
   end
 
-  @impl true
-  def checkin(state) do
-    {:ok, state}
-  end
+  # @impl true
+  # def checkin(state) do
+  #   {:ok, state}
+  # end
 
   @impl true
   def disconnect(_error, %{adapter: adapter, channel: channel} = _state) do
