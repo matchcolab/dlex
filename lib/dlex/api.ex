@@ -26,11 +26,11 @@ defmodule Api.Request.VarsEntry do
   @moduledoc false
   use Protobuf, map: true, syntax: :proto3
 
-  @type t :: %__MODULE__{
-          key: String.t(),
-          value: String.t()
-        }
-  defstruct [:key, :value]
+  # @type t :: %__MODULE__{
+  #         key: String.t(),
+  #         value: String.t()
+  #       }
+  # defstruct [:key, :value]
 
   field :key, 1, type: :string
   field :value, 2, type: :string
@@ -40,16 +40,16 @@ defmodule Api.Request do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
-  @type t :: %__MODULE__{
-          start_ts: non_neg_integer,
-          query: String.t(),
-          vars: %{String.t() => String.t()},
-          read_only: boolean,
-          best_effort: boolean,
-          mutations: [Api.Mutation.t()],
-          commit_now: boolean
-        }
-  defstruct [:start_ts, :query, :vars, :read_only, :best_effort, :mutations, :commit_now]
+  # @type t :: %__MODULE__{
+  #         start_ts: non_neg_integer,
+  #         query: String.t(),
+  #         vars: %{String.t() => String.t()},
+  #         read_only: boolean,
+  #         best_effort: boolean,
+  #         mutations: [Api.Mutation.t()],
+  #         commit_now: boolean
+  #       }
+  # defstruct [:start_ts, :query, :vars, :read_only, :best_effort, :mutations, :commit_now]
 
   field :start_ts, 1, type: :uint64
   field :query, 4, type: :string
@@ -64,11 +64,11 @@ defmodule Api.Response.UidsEntry do
   @moduledoc false
   use Protobuf, map: true, syntax: :proto3
 
-  @type t :: %__MODULE__{
-          key: String.t(),
-          value: String.t()
-        }
-  defstruct [:key, :value]
+  # @type t :: %__MODULE__{
+  #         key: String.t(),
+  #         value: String.t()
+  #       }
+  # defstruct [:key, :value]
 
   field :key, 1, type: :string
   field :value, 2, type: :string
@@ -78,13 +78,13 @@ defmodule Api.Response do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
-  @type t :: %__MODULE__{
-          json: binary,
-          txn: Api.TxnContext.t() | nil,
-          latency: Api.Latency.t() | nil,
-          uids: %{String.t() => String.t()}
-        }
-  defstruct [:json, :txn, :latency, :uids]
+  # @type t :: %__MODULE__{
+  #         json: binary,
+  #         txn: Api.TxnContext.t() | nil,
+  #         latency: Api.Latency.t() | nil,
+  #         uids: %{String.t() => String.t()}
+  #       }
+  # defstruct [:json, :txn, :latency, :uids]
 
   field :json, 1, type: :bytes
   field :txn, 2, type: Api.TxnContext
@@ -96,17 +96,17 @@ defmodule Api.Mutation do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
-  @type t :: %__MODULE__{
-          set_json: binary,
-          delete_json: binary,
-          set_nquads: binary,
-          del_nquads: binary,
-          set: [Api.NQuad.t()],
-          del: [Api.NQuad.t()],
-          cond: String.t(),
-          commit_now: boolean
-        }
-  defstruct [:set_json, :delete_json, :set_nquads, :del_nquads, :set, :del, :cond, :commit_now]
+  # @type t :: %__MODULE__{
+  #         set_json: binary,
+  #         delete_json: binary,
+  #         set_nquads: binary,
+  #         del_nquads: binary,
+  #         set: [Api.NQuad.t()],
+  #         del: [Api.NQuad.t()],
+  #         cond: String.t(),
+  #         commit_now: boolean
+  #       }
+  # defstruct [:set_json, :delete_json, :set_nquads, :del_nquads, :set, :del, :cond, :commit_now]
 
   field :set_json, 1, type: :bytes
   field :delete_json, 2, type: :bytes
@@ -122,14 +122,14 @@ defmodule Api.Operation do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
-  @type t :: %__MODULE__{
-          schema: String.t(),
-          drop_attr: String.t(),
-          drop_all: boolean,
-          drop_op: atom | integer,
-          drop_value: String.t()
-        }
-  defstruct [:schema, :drop_attr, :drop_all, :drop_op, :drop_value]
+  # @type t :: %__MODULE__{
+  #         schema: String.t(),
+  #         drop_attr: String.t(),
+  #         drop_all: boolean,
+  #         drop_op: atom | integer,
+  #         drop_value: String.t()
+  #       }
+  # defstruct [:schema, :drop_attr, :drop_all, :drop_op, :drop_value]
 
   field :schema, 1, type: :string
   field :drop_attr, 2, type: :string
@@ -142,10 +142,10 @@ defmodule Api.Payload do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
-  @type t :: %__MODULE__{
-          Data: binary
-        }
-  defstruct [:Data]
+  # @type t :: %__MODULE__{
+  #         Data: binary
+  #       }
+  # defstruct [:Data]
 
   field :Data, 1, type: :bytes
 end
@@ -154,14 +154,14 @@ defmodule Api.TxnContext do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
-  @type t :: %__MODULE__{
-          start_ts: non_neg_integer,
-          commit_ts: non_neg_integer,
-          aborted: boolean,
-          keys: [String.t()],
-          preds: [String.t()]
-        }
-  defstruct [:start_ts, :commit_ts, :aborted, :keys, :preds]
+  # @type t :: %__MODULE__{
+  #         start_ts: non_neg_integer,
+  #         commit_ts: non_neg_integer,
+  #         aborted: boolean,
+  #         keys: [String.t()],
+  #         preds: [String.t()]
+  #       }
+  # defstruct [:start_ts, :commit_ts, :aborted, :keys, :preds]
 
   field :start_ts, 1, type: :uint64
   field :commit_ts, 2, type: :uint64
@@ -182,10 +182,10 @@ defmodule Api.Version do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
-  @type t :: %__MODULE__{
-          tag: String.t()
-        }
-  defstruct [:tag]
+  # @type t :: %__MODULE__{
+  #         tag: String.t()
+  #       }
+  # defstruct [:tag]
 
   field :tag, 1, type: :string
 end
@@ -194,13 +194,13 @@ defmodule Api.Latency do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
-  @type t :: %__MODULE__{
-          parsing_ns: non_neg_integer,
-          processing_ns: non_neg_integer,
-          encoding_ns: non_neg_integer,
-          assign_timestamp_ns: non_neg_integer
-        }
-  defstruct [:parsing_ns, :processing_ns, :encoding_ns, :assign_timestamp_ns]
+  # @type t :: %__MODULE__{
+  #         parsing_ns: non_neg_integer,
+  #         processing_ns: non_neg_integer,
+  #         encoding_ns: non_neg_integer,
+  #         assign_timestamp_ns: non_neg_integer
+  #       }
+  # defstruct [:parsing_ns, :processing_ns, :encoding_ns, :assign_timestamp_ns]
 
   field :parsing_ns, 1, type: :uint64
   field :processing_ns, 2, type: :uint64
@@ -212,16 +212,16 @@ defmodule Api.NQuad do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
-  @type t :: %__MODULE__{
-          subject: String.t(),
-          predicate: String.t(),
-          object_id: String.t(),
-          object_value: Api.Value.t() | nil,
-          label: String.t(),
-          lang: String.t(),
-          facets: [Api.Facet.t()]
-        }
-  defstruct [:subject, :predicate, :object_id, :object_value, :label, :lang, :facets]
+  # @type t :: %__MODULE__{
+  #         subject: String.t(),
+  #         predicate: String.t(),
+  #         object_id: String.t(),
+  #         object_value: Api.Value.t() | nil,
+  #         label: String.t(),
+  #         lang: String.t(),
+  #         facets: [Api.Facet.t()]
+  #       }
+  # defstruct [:subject, :predicate, :object_id, :object_value, :label, :lang, :facets]
 
   field :subject, 1, type: :string
   field :predicate, 2, type: :string
@@ -236,10 +236,10 @@ defmodule Api.Value do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
-  @type t :: %__MODULE__{
-          val: {atom, any}
-        }
-  defstruct [:val]
+  # @type t :: %__MODULE__{
+  #         val: {atom, any}
+  #       }
+  # defstruct [:val]
 
   oneof(:val, 0)
   field :default_val, 1, type: :string, oneof: 0
@@ -259,14 +259,14 @@ defmodule Api.Facet do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
-  @type t :: %__MODULE__{
-          key: String.t(),
-          value: binary,
-          val_type: atom | integer,
-          tokens: [String.t()],
-          alias: String.t()
-        }
-  defstruct [:key, :value, :val_type, :tokens, :alias]
+  # @type t :: %__MODULE__{
+  #         key: String.t(),
+  #         value: binary,
+  #         val_type: atom | integer,
+  #         tokens: [String.t()],
+  #         alias: String.t()
+  #       }
+  # defstruct [:key, :value, :val_type, :tokens, :alias]
 
   field :key, 1, type: :string
   field :value, 2, type: :bytes
@@ -279,12 +279,12 @@ defmodule Api.LoginRequest do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
-  @type t :: %__MODULE__{
-          userid: String.t(),
-          password: String.t(),
-          refresh_token: String.t()
-        }
-  defstruct [:userid, :password, :refresh_token]
+  # @type t :: %__MODULE__{
+  #         userid: String.t(),
+  #         password: String.t(),
+  #         refresh_token: String.t()
+  #       }
+  # defstruct [:userid, :password, :refresh_token]
 
   field :userid, 1, type: :string
   field :password, 2, type: :string
@@ -295,11 +295,11 @@ defmodule Api.Jwt do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
-  @type t :: %__MODULE__{
-          access_jwt: String.t(),
-          refresh_jwt: String.t()
-        }
-  defstruct [:access_jwt, :refresh_jwt]
+  # @type t :: %__MODULE__{
+  #         access_jwt: String.t(),
+  #         refresh_jwt: String.t()
+  #       }
+  # defstruct [:access_jwt, :refresh_jwt]
 
   field :access_jwt, 1, type: :string
   field :refresh_jwt, 2, type: :string
