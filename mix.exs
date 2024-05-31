@@ -31,7 +31,7 @@ defmodule Dlex.MixProject do
       {:db_connection, "~> 2.6"},
       {:grpc, "~> 0.3.1"},
       {:jason, "~> 1.4", optional: true},
-      {:mint, "~> 1.0", optional: true},
+      {:mint, "~> 1.5", optional: true},
       {:castore, "~> 0.1.4", optional: true},
       {:ecto, "~> 3.11", optional: true},
       {:earmark, "~> 1.4", only: :dev},
