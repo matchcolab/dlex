@@ -232,7 +232,8 @@ defmodule Dlex.Repo do
   Get by uid
   """
   def get(conn, %{lookup: lookup}, uid) do
-    statement = ["{uid_get(func: uid(", uid, ")) {uid dgraph.type expand(_all_)}}"]
+    statement =
+      ["{uid_get(func: uid(", uid, ")) {uid dgraph.type expand(_all_)}}"] |> Enum.join("")
 
     with {:ok, %{"uid_get" => nodes}} <- Dlex.query(conn, statement) do
       case nodes do
