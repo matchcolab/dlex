@@ -29,14 +29,15 @@ defmodule Dlex.MixProject do
   defp deps do
     [
       {:db_connection, "~> 2.6"},
-      {:grpc, "~> 0.3.1"},
+      {:grpc, "~> 0.5.0"},
       {:jason, "~> 1.4", optional: true},
       {:mint, "~> 1.5", optional: true},
       {:castore, "~> 1.0.7", optional: true},
       {:ecto, "~> 3.11", optional: true},
       {:earmark, "~> 1.4", only: :dev},
       {:exrun, "~> 0.1.0", only: :dev},
-      {:ex_doc, "~> 0.27", only: :dev}
+      {:ex_doc, "~> 0.27", only: :dev},
+      {:protobuf, "~> 0.12"}
     ]
   end
 
