@@ -5,15 +5,23 @@ defmodule Dlex.RepoTest do
   alias Dlex.{Geo, TestHelper, TestRepo, User}
 
   setup_all do
+    IO.puts("Starting all necessary applications")
+    {:ok, _} = Application.ensure_all_started(:db_connection)
+    {:ok, _} = Application.ensure_all_started(:dlex)
+    IO.puts("Starting TestRepo")
     {:ok, pid} = TestRepo.start_link(TestHelper.opts())
+    IO.puts("Dropping all existing data")
+    TestHelper.drop_all(pid)
     %{pid: pid}
   end
 
   describe "schema operations" do
-    setup do
-      TestRepo.register(User)
-      TestRepo.alter_schema()
-      :ok
+    setup context do
+      IO.puts("Registering User schema")
+      :ok = TestRepo.register(User)
+      IO.puts("Altering schema")
+      :ok = TestRepo.alter_schema()
+      {:ok, context}
     end
 
     test "basic crud operations" do

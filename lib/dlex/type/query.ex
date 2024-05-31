@@ -19,8 +19,7 @@ defmodule Dlex.Type.Query do
     struct(Request,
       query: statement,
       vars: Utils.encode_vars(vars),
-      read_only: Keyword.get(opts, :read_only, false),
-      best_effort: Keyword.get(opts, :best_effort, false)
+      read_only: Keyword.get(opts, :read_only, false)
     )
   end
 

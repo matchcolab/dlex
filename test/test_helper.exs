@@ -11,6 +11,8 @@ defmodule Dlex.TestHelper do
 
   def drop_all(pid) do
     Dlex.alter(pid, %{drop_all: true})
+  rescue
+    e -> IO.puts("Error during drop_all: #{inspect(e)}")
   end
 
   def adapter(), do: @dlex_adapter
@@ -62,5 +64,7 @@ to_skip =
     :grpc -> [:http]
   end
 
+{:ok, _} = Application.ensure_all_started(:db_connection)
+{:ok, _} = Application.ensure_all_started(:dlex)
 {:ok, _} = Application.ensure_all_started(:grpc)
 ExUnit.start(exclude: [:skip | to_skip])
