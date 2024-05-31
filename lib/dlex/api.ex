@@ -174,8 +174,8 @@ defmodule Api.Check do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
-  @type t :: %__MODULE__{}
-  defstruct []
+  # @type t :: %__MODULE__{}
+  # defstruct []
 end
 
 defmodule Api.Version do
