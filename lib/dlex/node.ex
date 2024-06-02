@@ -239,7 +239,11 @@ defmodule Dlex.Node do
     string: "string",
     geo: "geo",
     datetime: "datetime",
-    uid: "[uid]"
+    uid: "[uid]",
+    bool: "bool",
+    bytes: "bytes",
+    list: "list",
+    map: "map"
   ]
 
   for {type, dgraph_type} <- @types_mapping do

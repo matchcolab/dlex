@@ -13,7 +13,7 @@ defmodule Dlex.Repo do
   alias Dlex.{Error, Node, Repo.Meta, Utils}
 
   @doc """
-
+  Define the repository using options provided in the configuration.
   """
   defmacro __using__(opts) do
     quote bind_quoted: [opts: opts], location: :keep do
@@ -92,7 +92,7 @@ defmodule Dlex.Repo do
 
   @doc """
   Query all. It automatically tries to decode values inside of a query. To make it work, you
-  need to expand the results it like this: `uid dgraph.type expand(_all_)`
+  need to expand the results like this: `uid dgraph.type expand(_all_)`
   """
   def all(conn, query, params, %{lookup: lookup} = _meta \\ %{lookup: %{}}) do
     with {:ok, data} <- Dlex.query(conn, query, params), do: decode(data, lookup, false)
@@ -106,7 +106,7 @@ defmodule Dlex.Repo do
   def set(conn, data, opts), do: mutate(conn, data, opts)
 
   @doc """
-  The same as `mutate/2`, but return result of sucessful operation or raises.
+  The same as `mutate/2`, but return result of successful operation or raises.
   """
   def mutate!(conn, data, opts) do
     case mutate(conn, data, opts) do
@@ -199,7 +199,7 @@ defmodule Dlex.Repo do
   end
 
   @doc """
-  The same as `delete/2`, but return result of sucessful operation or raises.
+  The same as `delete/2`, but return result of successful operation or raises.
   """
   def delete!(conn, data, opts) do
     case delete(conn, data, opts) do
