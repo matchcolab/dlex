@@ -3,7 +3,7 @@ defmodule Dlex do
   Dgraph driver for Elixir.
 
   This module handles the connection to Dgraph, providing pooling (via `DBConnection`), queries,
-  mutations and transactions.
+  mutations, and transactions.
   """
 
   alias Dlex.{Query, Type}
@@ -481,48 +481,43 @@ defmodule Dlex do
              }
            ]
          }
-      iex> Dlex.upsert(conn, upsert_query, mutation)
+      iex> Dlex.upsert(conn, upsert_query, [mutation])
       {:ok, %{"uid(user)" => "0x123", ...}}
 
   ## Options
 
     * `:timeout` - Call timeout (default: `#{@timeout}`)
   """
-  @spec upsert(conn, query, mutations, Keyword.t()) ::
+  @spec upsert(conn, query, [mutation], Keyword.t()) ::
           {:ok, map} | {:error, Dlex.Error.t() | term}
+  @spec upsert(conn, query, mutation, Keyword.t()) ::
+          {:ok, map} | {:error, Dlex.Error.t() | term}
+  def upsert(conn, query_statement, mutations, opts \\ [])
 
-  def upsert(conn, query_statement, mutations, opts) do
-    query = %Query{type: Type.Upsert, statement: List.wrap(mutations), query: query_statement}
+  def upsert(conn, query_statement, mutations, opts) when is_list(mutations) do
+    query = %Query{type: Type.Upsert, statement: mutations, query: query_statement}
 
     with {:ok, _, result} <- DBConnection.prepare_execute(conn, query, %{}, opts),
          do: {:ok, result}
   end
 
-  @doc """
-  The same as `Dlex.upsert(conn, query, mutations, [])`
-  """
-  @spec upsert(conn, query, mutations) :: {:ok, map} | {:error, Dlex.Error.t() | term}
-  def upsert(conn, query, mutations), do: upsert(conn, query, mutations, [])
+  def upsert(conn, query_statement, mutation, opts) do
+    upsert(conn, query_statement, [mutation], opts)
+  end
 
-  @doc """
-  Runs an upsert and returns the result or raises `Dlex.Error` if there was an error.
-  See `upsert/4`.
-  """
-  @spec upsert!(conn, query, mutations, Keyword.t()) :: map | no_return
-  def upsert!(conn, query, mutations, opts) do
+  @spec upsert!(conn, query, [mutation], Keyword.t()) :: map | no_return
+  @spec upsert!(conn, query, mutation, Keyword.t()) :: map | no_return
+  def upsert!(conn, query, mutations, opts \\ [])
+
+  def upsert!(conn, query, mutations, opts) when is_list(mutations) do
     case upsert(conn, query, mutations, opts) do
       {:ok, result} -> result
       {:error, err} -> raise err
     end
   end
 
-  @doc """
-  Runs an upsert and returns the result or raises `Dlex.Error` if there was an error.
-  See `upsert/3`.
-  """
-  @spec upsert!(conn, query, mutations) :: map | no_return
-  def upsert!(conn, query, mutations) do
-    case upsert(conn, query, mutations) do
+  def upsert!(conn, query, mutation, opts) do
+    case upsert(conn, query, mutation, opts) do
       {:ok, result} -> result
       {:error, err} -> raise err
     end
