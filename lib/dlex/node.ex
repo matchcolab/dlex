@@ -253,6 +253,8 @@ defmodule Dlex.Node do
   @primitive_types Keyword.keys(@types_mapping)
   def primitive_type?(type), do: type in @primitive_types
 
+  defp db_type({:array, type}), do: "[#{db_type(type)}]"
+
   defp db_type(type) do
     if primitive_type?(type), do: primitive_type(type), else: primitive_type(type.type)
   end

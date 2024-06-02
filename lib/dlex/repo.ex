@@ -179,7 +179,7 @@ defmodule Dlex.Repo do
       encoded_data ->
         query = opts[:query] || ""
 
-        with {:ok, %{uids: ids_map}} <- Dlex.upsert(conn, query, encoded_data, opts) do
+        with {:ok, %{uids: ids_map}} <- Dlex.upsert(conn, query, List.wrap(encoded_data), opts) do
           {:ok, Utils.replace_ids(data_with_ids, ids_map, :uid)}
         end
     end

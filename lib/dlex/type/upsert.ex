@@ -15,12 +15,12 @@ defmodule Dlex.Type.Upsert do
   def describe(query, _opts), do: query
 
   @impl true
-  def encode(%Query{statement: %{query: query, mutations: mutations}}, vars, json_lib) do
+  def encode(%Query{query: query, statement: statement}, vars, json_lib) do
     request_mutations =
-      for %{set: set, delete: delete} <- mutations do
+      for %{set: set, delete: delete} <- List.wrap(statement) do
         struct(Mutation,
-          set_json: json_lib.encode!(set),
-          delete_json: json_lib.encode!(delete)
+          set_json: json_lib.encode!(set || %{}),
+          delete_json: json_lib.encode!(delete || %{})
         )
       end
 

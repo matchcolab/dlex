@@ -3,7 +3,7 @@ defmodule Dlex do
   Dgraph driver for Elixir.
 
   This module handles the connection to Dgraph, providing pooling (via `DBConnection`), queries,
-  mutations and transactions.
+  mutations, and transactions.
   """
 
   alias Dlex.{Query, Type}
@@ -488,8 +488,11 @@ defmodule Dlex do
 
     * `:timeout` - Call timeout (default: `#{@timeout}`)
   """
-  @spec upsert(conn, query, mutations, Keyword.t()) ::
+  @spec upsert(conn, query, [mutation], Keyword.t()) ::
           {:ok, map} | {:error, Dlex.Error.t() | term}
+  @spec upsert(conn, query, mutation, Keyword.t()) ::
+          {:ok, map} | {:error, Dlex.Error.t() | term}
+  def upsert(conn, query_statement, mutations, opts \\ [])
 
   def upsert(conn, query_statement, mutations, opts) do
     query = %Query{type: Type.Upsert, statement: List.wrap(mutations), query: query_statement}
@@ -498,31 +501,12 @@ defmodule Dlex do
          do: {:ok, result}
   end
 
-  @doc """
-  The same as `Dlex.upsert(conn, query, mutations, [])`
-  """
-  @spec upsert(conn, query, mutations) :: {:ok, map} | {:error, Dlex.Error.t() | term}
-  def upsert(conn, query, mutations), do: upsert(conn, query, mutations, [])
+  @spec upsert!(conn, query, [mutation], Keyword.t()) :: map | no_return
+  @spec upsert!(conn, query, mutation, Keyword.t()) :: map | no_return
+  def upsert!(conn, query, mutations, opts \\ [])
 
-  @doc """
-  Runs an upsert and returns the result or raises `Dlex.Error` if there was an error.
-  See `upsert/4`.
-  """
-  @spec upsert!(conn, query, mutations, Keyword.t()) :: map | no_return
   def upsert!(conn, query, mutations, opts) do
-    case upsert(conn, query, mutations, opts) do
-      {:ok, result} -> result
-      {:error, err} -> raise err
-    end
-  end
-
-  @doc """
-  Runs an upsert and returns the result or raises `Dlex.Error` if there was an error.
-  See `upsert/3`.
-  """
-  @spec upsert!(conn, query, mutations) :: map | no_return
-  def upsert!(conn, query, mutations) do
-    case upsert(conn, query, mutations) do
+    case upsert(conn, query, List.wrap(mutations), opts) do
       {:ok, result} -> result
       {:error, err} -> raise err
     end
