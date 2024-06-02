@@ -481,7 +481,7 @@ defmodule Dlex do
              }
            ]
          }
-      iex> Dlex.upsert(conn, upsert_query, [mutation])
+      iex> Dlex.upsert(conn, upsert_query, mutation)
       {:ok, %{"uid(user)" => "0x123", ...}}
 
   ## Options
@@ -494,30 +494,19 @@ defmodule Dlex do
           {:ok, map} | {:error, Dlex.Error.t() | term}
   def upsert(conn, query_statement, mutations, opts \\ [])
 
-  def upsert(conn, query_statement, mutations, opts) when is_list(mutations) do
-    query = %Query{type: Type.Upsert, statement: mutations, query: query_statement}
+  def upsert(conn, query_statement, mutations, opts) do
+    query = %Query{type: Type.Upsert, statement: List.wrap(mutations), query: query_statement}
 
     with {:ok, _, result} <- DBConnection.prepare_execute(conn, query, %{}, opts),
          do: {:ok, result}
-  end
-
-  def upsert(conn, query_statement, mutation, opts) do
-    upsert(conn, query_statement, [mutation], opts)
   end
 
   @spec upsert!(conn, query, [mutation], Keyword.t()) :: map | no_return
   @spec upsert!(conn, query, mutation, Keyword.t()) :: map | no_return
   def upsert!(conn, query, mutations, opts \\ [])
 
-  def upsert!(conn, query, mutations, opts) when is_list(mutations) do
-    case upsert(conn, query, mutations, opts) do
-      {:ok, result} -> result
-      {:error, err} -> raise err
-    end
-  end
-
-  def upsert!(conn, query, mutation, opts) do
-    case upsert(conn, query, mutation, opts) do
+  def upsert!(conn, query, mutations, opts) do
+    case upsert(conn, query, List.wrap(mutations), opts) do
       {:ok, result} -> result
       {:error, err} -> raise err
     end

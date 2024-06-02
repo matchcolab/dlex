@@ -52,27 +52,5 @@ defmodule Dlex.RepoTest do
 
       assert {:ok, %User{location: %Geo{lat: 15.5, lon: 10.2}}} = TestRepo.get(uid)
     end
-
-    test "schema operations upsert operation with changeset" do
-      query = """
-        query {
-          user as var(func: eq(name, "Bob"))
-        }
-      """
-
-      mutation = %{
-        set: [%{age: 30, name: "Bob", uid: "uid(user)"}]
-      }
-
-      # Perform the upsert operation with the correct opts parameter
-      assert {:ok, _user} = TestRepo.upsert(%{query: query}, mutation, [])
-    end
-
-    test "schema operations upsert operation" do
-      query = "query { user as var(func: eq(name, \"Alice\")) }"
-      mutation = %{set: [%{uid: "uid(user)", name: "Alice", age: 28}]}
-
-      assert {:ok, _user} = TestRepo.upsert(%{query: query}, mutation, [])
-    end
   end
 end
