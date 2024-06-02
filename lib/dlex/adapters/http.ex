@@ -61,96 +61,15 @@ if Code.ensure_loaded?(Mint.HTTP) do
 
     @impl true
     def mutate(channel, request, json_lib, opts) do
-      %{mutations: [mutation | _] = mutations, start_ts: start_ts, query: query, vars: variables} =
-        request
-
-      type = mutation_type(mutation)
-
-      request = %Request{
-        action: :mutate,
-        start_ts: start_ts,
-        commit_now: request.commit_now,
-        json: json_lib,
-        headers: content_type(type),
-        body: build_mutations(mutations, type, json_lib, query, variables)
-      }
-
+      request = build_mutate_request(request, json_lib)
       handle_request(channel, request, opts)
     end
 
-    defp build_mutations([mutation], :json, json_lib, query, variables) do
-      mutations_string = build_mutation(mutation, :json, json_lib)
-      ~s|{#{build_json_query(query, variables, json_lib)}#{mutations_string}}|
+    @impl true
+    def upsert(channel, request, json_lib, opts) do
+      request = build_upsert_request(request, json_lib)
+      handle_request(channel, request, opts)
     end
-
-    defp build_mutations(mutations, :json, json_lib, query, variables) do
-      mutations =
-        Enum.map_join(mutations, ", ", fn mutation ->
-          "{#{build_mutation(mutation, :json, json_lib)}}"
-        end)
-
-      ~s|{#{build_json_query(query, variables, json_lib)}"mutations": [#{mutations}]}|
-    end
-
-    defp build_mutations([mutation], :nquads, _json_lib, "", _) do
-      build_mutation(mutation, :nquads, false)
-    end
-
-    defp build_mutations(mutations, :nquads, _json_lib, query, variables)
-         when map_size(variables) == 0 do
-      mutations_string = Enum.map_join(mutations, " ", &build_mutation(&1, :nquads, true))
-      ~s|upsert { query #{query} #{mutations_string} }|
-    end
-
-    defp build_json_query("", _, _), do: ""
-
-    defp build_json_query(query, variables, json_lib),
-      do: ~s|"query": #{json_lib.encode!(query)}, "variables": #{json_lib.encode!(variables)}, |
-
-    defp build_mutation(mutation, :nquads, false) do
-      [{:nquads, operation, mutation}] = extract_mutations(mutation)
-      "{ #{operation} { #{mutation} } }"
-    end
-
-    defp build_mutation(%{cond: condition} = mutation, :nquads, true) do
-      mutations =
-        for {:nquads, operation, mutation} <- extract_mutations(mutation) do
-          "#{operation} { #{mutation} }"
-        end
-
-      ~s|mutation #{condition} { #{Enum.join(mutations, " ")} }|
-    end
-
-    defp build_mutation(%{cond: condition} = mutation, :json, json_lib) do
-      condition_string =
-        with condition when is_binary(condition) and condition != "" <- condition do
-          ~s|"cond": #{json_lib.encode!(condition)}, |
-        end
-
-      mutations =
-        for {:json, operation, mutation} <- extract_mutations(mutation),
-            do: ~s|"#{operation}": #{mutation}|
-
-      ~s|#{condition_string}#{Enum.join(mutations, ", ")}|
-    end
-
-    @mutation_keys [
-      set_json: {:json, :set},
-      delete_json: {:json, :delete},
-      set_nquads: {:nquads, :set},
-      del_nquads: {:nquads, :delete}
-    ]
-    defp extract_mutations(mutation) do
-      Enum.flat_map(@mutation_keys, fn {key, {type, operation}} ->
-        case Map.get(mutation, key) do
-          "" -> []
-          value -> [{type, operation, value}]
-        end
-      end)
-    end
-
-    defp mutation_type(%{set_nquads: "", del_nquads: ""}), do: :json
-    defp mutation_type(%{set_json: "", delete_json: ""}), do: :nquads
 
     @impl true
     def query(channel, request, json_lib, opts) do
@@ -355,5 +274,108 @@ if Code.ensure_loaded?(Mint.HTTP) do
       body = body |> Enum.reverse() |> Enum.join()
       %{response | body: body, done: true}
     end
+
+    defp build_mutate_request(request, json_lib) do
+      %{mutations: [mutation | _] = mutations, start_ts: start_ts, query: query, vars: variables} =
+        request
+
+      type = mutation_type(mutation)
+
+      %Request{
+        action: :mutate,
+        start_ts: start_ts,
+        commit_now: request.commit_now,
+        json: json_lib,
+        headers: content_type(type),
+        body: build_mutations(mutations, type, json_lib, query, variables)
+      }
+    end
+
+    defp build_upsert_request(request, json_lib) do
+      %{mutations: mutations, start_ts: start_ts, query: query, vars: variables} = request
+
+      %Request{
+        action: :upsert,
+        start_ts: start_ts,
+        commit_now: request.commit_now,
+        json: json_lib,
+        headers: content_type(:json),
+        body: build_mutations(mutations, :json, json_lib, query, variables)
+      }
+    end
+
+    defp build_mutations([mutation], :json, json_lib, query, variables) do
+      mutations_string = build_mutation(mutation, :json, json_lib)
+      ~s|{#{build_json_query(query, variables, json_lib)}#{mutations_string}}|
+    end
+
+    defp build_mutations(mutations, :json, json_lib, query, variables) do
+      mutations =
+        Enum.map_join(mutations, ", ", fn mutation ->
+          "{#{build_mutation(mutation, :json, json_lib)}}"
+        end)
+
+      ~s|{#{build_json_query(query, variables, json_lib)}"mutations": [#{mutations}]}|
+    end
+
+    defp build_mutations([mutation], :nquads, _json_lib, "", _) do
+      build_mutation(mutation, :nquads, false)
+    end
+
+    defp build_mutations(mutations, :nquads, _json_lib, query, variables)
+         when map_size(variables) == 0 do
+      mutations_string = Enum.map_join(mutations, " ", &build_mutation(&1, :nquads, true))
+      ~s|upsert { query #{query} #{mutations_string} }|
+    end
+
+    defp build_json_query("", _, _), do: ""
+
+    defp build_json_query(query, variables, json_lib),
+      do: ~s|"query": #{json_lib.encode!(query)}, "variables": #{json_lib.encode!(variables)}, |
+
+    defp build_mutation(mutation, :nquads, false) do
+      [{:nquads, operation, mutation}] = extract_mutations(mutation)
+      "{ #{operation} { #{mutation} } }"
+    end
+
+    defp build_mutation(%{cond: condition} = mutation, :nquads, true) do
+      mutations =
+        for {:nquads, operation, mutation} <- extract_mutations(mutation) do
+          "#{operation} { #{mutation} }"
+        end
+
+      ~s|mutation #{condition} { #{Enum.join(mutations, " ")} }|
+    end
+
+    defp build_mutation(%{cond: condition} = mutation, :json, json_lib) do
+      condition_string =
+        with condition when is_binary(condition) and condition != "" <- condition do
+          ~s|"cond": #{json_lib.encode!(condition)}, |
+        end
+
+      mutations =
+        for {:json, operation, mutation} <- extract_mutations(mutation),
+            do: ~s|"#{operation}": #{mutation}|
+
+      ~s|#{condition_string}#{Enum.join(mutations, ", ")}|
+    end
+
+    @mutation_keys [
+      set_json: {:json, :set},
+      delete_json: {:json, :delete},
+      set_nquads: {:nquads, :set},
+      del_nquads: {:nquads, :delete}
+    ]
+    defp extract_mutations(mutation) do
+      Enum.flat_map(@mutation_keys, fn {key, {type, operation}} ->
+        case Map.get(mutation, key) do
+          "" -> []
+          value -> [{type, operation, value}]
+        end
+      end)
+    end
+
+    defp mutation_type(%{set_nquads: "", del_nquads: ""}), do: :json
+    defp mutation_type(%{set_json: "", delete_json: ""}), do: :nquads
   end
 end

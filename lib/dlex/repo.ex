@@ -49,6 +49,9 @@ defmodule Dlex.Repo do
       def mutate(node, opts \\ []), do: Dlex.Repo.mutate(@name, node, opts)
       def mutate!(node, opts \\ []), do: Dlex.Repo.mutate!(@name, node, opts)
 
+      def upsert(node, opts \\ []), do: Dlex.Repo.upsert(@name, node, opts)
+      def upsert!(node, opts \\ []), do: Dlex.Repo.upsert!(@name, node, opts)
+
       def delete(node, opts \\ []), do: Dlex.Repo.delete(@name, node, opts)
       def delete!(node, opts \\ []), do: Dlex.Repo.delete!(@name, node, opts)
 
@@ -136,6 +139,47 @@ defmodule Dlex.Repo do
 
       encoded_data ->
         with {:ok, %{uids: ids_map}} <- Dlex.set(conn, %{}, encoded_data, opts) do
+          {:ok, Utils.replace_ids(data_with_ids, ids_map, :uid)}
+        end
+    end
+  end
+
+  @doc """
+  The same as `upsert/2`, but return result of successful operation or raises.
+  """
+  def upsert!(conn, data, opts) do
+    case upsert(conn, data, opts) do
+      {:ok, result} -> result
+      {:error, error} -> raise error
+    end
+  end
+
+  @doc """
+  Upsert data.
+  """
+  def upsert(_conn, %{__struct__: Ecto.Changeset, valid?: false} = changeset, _opts),
+    do: {:error, changeset}
+
+  def upsert(conn, %{__struct__: Ecto.Changeset, valid?: true} = changeset, opts) do
+    %{data: %{__struct__: struct} = data, changes: changes} = changeset
+
+    with {:ok, new_data} <-
+           upsert(conn, Map.merge(changes, %{__struct__: struct, uid: nil}), opts) do
+      {:ok, Map.merge(data, new_data)}
+    end
+  end
+
+  def upsert(conn, data, opts) do
+    data_with_ids = Utils.add_blank_ids(data, :uid)
+
+    case encode(data_with_ids) do
+      {:error, error} ->
+        {:error, %Error{action: :upsert, reason: error}}
+
+      encoded_data ->
+        query = opts[:query] || ""
+
+        with {:ok, %{uids: ids_map}} <- Dlex.upsert(conn, query, encoded_data, opts) do
           {:ok, Utils.replace_ids(data_with_ids, ids_map, :uid)}
         end
     end

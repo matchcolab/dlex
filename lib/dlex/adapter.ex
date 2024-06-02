@@ -17,6 +17,8 @@ defmodule Dlex.Adapter do
   @type request :: %{}
   @type json_lib :: module()
   @type result :: %{}
+  # @type query :: String.t()
+  # @type mutations :: list(map())
 
   @callback connect(host, port_number, opts) :: {:ok, conn} | {:error, term}
   @callback disconnect(conn) :: :ok | {:error, term}
@@ -27,6 +29,7 @@ defmodule Dlex.Adapter do
   @callback query(conn, request, json_lib, opts) :: {:ok, result} | {:error, term}
   @callback commit_or_abort(conn, transaction, json_lib, opts) ::
               {:ok, transaction} | {:error, term}
+  @callback upsert(conn, request, json_lib, opts) :: {:ok, result} | {:error, term}
 
   def connect(adapter, host, port, opts), do: adapter.connect(host, port, opts)
   def disconnect(adapter, conn), do: adapter.disconnect(conn)
@@ -43,4 +46,7 @@ defmodule Dlex.Adapter do
 
   def commit_or_abort(adapter, conn, request, json_lib, opts),
     do: adapter.commit_or_abort(conn, request, json_lib, opts)
+
+  def upsert(adapter, conn, request, json_lib, opts),
+    do: adapter.upsert(conn, request, json_lib, opts)
 end

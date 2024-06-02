@@ -63,7 +63,7 @@ defmodule Dlex.Adapters.GRPC do
     # check if the server is up and wait 5s seconds before disconnect
     case ApiStub.check_version(channel, struct(Check), timeout: 5_000) do
       {:ok, _} -> {:ok, channel}
-      {:error, reason} -> {:error, reason}
+      {:error, reason} -> {:erroar, reason}
       _ -> :ok
     end
   end
@@ -75,6 +75,11 @@ defmodule Dlex.Adapters.GRPC do
 
   @impl true
   def mutate(channel, request, _json_lib, opts) do
+    ApiStub.query(channel, request, opts)
+  end
+
+  @impl true
+  def upsert(channel, request, _json_lib, opts) do
     ApiStub.query(channel, request, opts)
   end
 

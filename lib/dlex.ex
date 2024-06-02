@@ -29,19 +29,19 @@ defmodule Dlex do
 
   ## Options
 
-    * `:hostname` - Server hostname (default: DGRAPH_HOST, than `localhost`)
+    * `:hostname` - Server hostname (default: DGRAPH_HOST, then `localhost`)
     * `:port` - Server port (default: DGRAPH_PORT env var, then 9080)
     * `:keepalive` - Keepalive option for http client (default: `:infinity`)
     * `:json_library` - Specifies json library to use (default: `Jason`)
     * `:transport` - Specify if grpc or http should be used (default: `grpc`)
-    * `:connect_timeout` - Connection timeout in milliseconds (default: `#{@timeout}`);
+    * `:connect_timeout` - Connection timeout in milliseconds (default: `#{@timeout}`)
 
-  ### SSL/TLS configuration (automaticly enabled, if required files provided)
+  ### SSL/TLS configuration (automatically enabled, if required files provided)
 
     * `:cacertfile` - Path to your CA certificate. Should be provided for SSL authentication
-    * `:certfile` - Path to client certificate. Should be additionally provided for TSL
+    * `:certfile` - Path to client certificate. Should be additionally provided for TLS
       authentication
-    * `:keyfile` - Path to client key. Should be additionally provided for TSL authentication
+    * `:keyfile` - Path to client key. Should be additionally provided for TLS authentication
 
   ### DBConnection options
 
@@ -138,9 +138,9 @@ defmodule Dlex do
   Example of usage
 
       iex> mutation = "
-           _:foo <name> "Foo" .
+           _:foo <name> \"Foo\" .
            _:foo <owns> _:bar .
-            _:bar <name> "Bar" .
+            _:bar <name> \"Bar\" .
            "
       iex> Dlex.set(conn, mutation)
       {:ok, %{uids: %{"bar" => "0xfe04c", "foo" => "0xfe04b"}, queries: %{}}}
@@ -163,10 +163,8 @@ defmodule Dlex do
     * `:timeout` - Call timeout (default: `#{@timeout}`)
 
   """
-
   @spec set(conn, query_map, statement, Keyword.t()) ::
           {:ok, map} | {:error, Dlex.Error.t() | term}
-
   def set(conn, query, statement, opts), do: mutate(conn, query, %{set: statement}, opts)
 
   @doc """
@@ -211,7 +209,7 @@ defmodule Dlex do
   Runs a mutation and returns the result or raises `Dlex.Error` if there was an error.
   See `set/2`.
   """
-  @spec mutate!(conn, statement) :: map | no_return
+  @spec set!(conn, statement) :: map | no_return
   def set!(conn, statement) do
     case mutate(conn, %{}, %{set: statement}, []) do
       {:ok, result} -> result
@@ -229,9 +227,9 @@ defmodule Dlex do
   Example of usage
 
       iex> mutation = "
-           _:foo <name> "Foo" .
+           _:foo <name> \"Foo\" .
            _:foo <owns> _:bar .
-            _:bar <name> "Bar" .
+            _:bar <name> \"Bar\" .
            "
       iex> Dlex.mutate(conn, %{set: mutation})
       {:ok, %{uids: %{"bar" => "0xfe04c", "foo" => "0xfe04b"}, queries: %{}}}
@@ -253,7 +251,6 @@ defmodule Dlex do
 
     * `:timeout` - Call timeout (default: `#{@timeout}`)
   """
-
   @spec mutate(conn, query_map, mutations, Keyword.t()) ::
           {:ok, map} | {:error, Dlex.Error.t() | term}
 
@@ -378,7 +375,7 @@ defmodule Dlex do
   Runs a mutation with delete target and returns the result or raises `Dlex.Error` if there was
   an error. See `delete/3`.
   """
-  @spec delete(conn, query | statement, statement | Keyword.t()) :: map | no_return
+  @spec delete!(conn, query | statement, statement | Keyword.t()) :: map | no_return
   def delete!(conn, query_or_statement, statement_or_opts) do
     case delete(conn, query_or_statement, statement_or_opts) do
       {:ok, result} -> result
@@ -390,7 +387,7 @@ defmodule Dlex do
   Runs a mutation with delete target and returns the result or raises `Dlex.Error` if there was
   an error. See `delete/2`.
   """
-  @spec delete(conn, statement) :: map | no_return
+  @spec delete!(conn, statement) :: map | no_return
   def delete!(conn, statement) do
     case mutate(conn, %{}, %{delete: statement}, []) do
       {:ok, result} -> result
@@ -452,7 +449,7 @@ defmodule Dlex do
   def query_schema!(conn), do: query!(conn, "schema {}")
 
   @doc """
-  Execute serie of queries and mutations in a transactions
+  Execute series of queries and mutations in a transaction
   """
   @spec transaction(conn, (DBConnection.t() -> result :: any), Keyword.t()) ::
           {:ok, result :: any} | {:error, any}
@@ -462,6 +459,72 @@ defmodule Dlex do
     catch
       :error, %Dlex.Error{} = error ->
         {:error, error}
+    end
+  end
+
+  @doc """
+  Send upsert to dgraph
+
+  Example of usage
+
+      iex> upsert_query = "
+           query {
+             user as var(func: eq(email, \"foo@bar.com\"))
+           }
+           "
+      iex> mutation = %{
+           set: [
+             %{
+               uid: "uid(user)",
+               name: "Foo",
+               email: "foo@bar.com"
+             }
+           ]
+         }
+      iex> Dlex.upsert(conn, upsert_query, mutation)
+      {:ok, %{"uid(user)" => "0x123", ...}}
+
+  ## Options
+
+    * `:timeout` - Call timeout (default: `#{@timeout}`)
+  """
+  @spec upsert(conn, query, mutations, Keyword.t()) ::
+          {:ok, map} | {:error, Dlex.Error.t() | term}
+
+  def upsert(conn, query_statement, mutations, opts) do
+    query = %Query{type: Type.Upsert, statement: List.wrap(mutations), query: query_statement}
+
+    with {:ok, _, result} <- DBConnection.prepare_execute(conn, query, %{}, opts),
+         do: {:ok, result}
+  end
+
+  @doc """
+  The same as `Dlex.upsert(conn, query, mutations, [])`
+  """
+  @spec upsert(conn, query, mutations) :: {:ok, map} | {:error, Dlex.Error.t() | term}
+  def upsert(conn, query, mutations), do: upsert(conn, query, mutations, [])
+
+  @doc """
+  Runs an upsert and returns the result or raises `Dlex.Error` if there was an error.
+  See `upsert/4`.
+  """
+  @spec upsert!(conn, query, mutations, Keyword.t()) :: map | no_return
+  def upsert!(conn, query, mutations, opts) do
+    case upsert(conn, query, mutations, opts) do
+      {:ok, result} -> result
+      {:error, err} -> raise err
+    end
+  end
+
+  @doc """
+  Runs an upsert and returns the result or raises `Dlex.Error` if there was an error.
+  See `upsert/3`.
+  """
+  @spec upsert!(conn, query, mutations) :: map | no_return
+  def upsert!(conn, query, mutations) do
+    case upsert(conn, query, mutations) do
+      {:ok, result} -> result
+      {:error, err} -> raise err
     end
   end
 end
