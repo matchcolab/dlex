@@ -36,12 +36,19 @@ defmodule Dlex.Node do
 
   Dgraph types:
 
-      * `:integer`
-      * `:float`
       * `:string`
-      * `:geo`
+      * `:int`
+      * `:float`
+      * `:bool`
       * `:datetime`
+      * `:geo`
+      * `:password`
+      * `:list`
+      * `:set`
       * `:uid`
+      * `:default`
+      * `:dateTime`
+      * `:default`
       * `:auto` - special type, which can be used for `depends_on`
 
   ## Reflection
