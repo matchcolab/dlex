@@ -8,7 +8,7 @@ It uses the [DBConnection](https://hexdocs.pm/db_connection/DBConnection.html) b
 
 Small, efficient codebase. Aims for a full Dgraph support. Supports transactions (starting from Dgraph version: `1.0.9`), delete mutations and low-level parameterized queries. DSL is planned.
 
-Now supports the new dgraph 1.1.x [Type System](https://docs.dgraph.io/master/query-language/#type-system).
+Now supports the new Dgraph 21.03 [Type System](https://docs.dgraph.io/master/query-language/#type-system).
 
 ## Installation
 
@@ -21,7 +21,7 @@ Preferred and more performant option is to use `grpc`:
 def deps do
   [
     {:jason, "~> 1.0"},
-    {:dlex, "~> 0.5.0"}
+    {:dlex, "~> 1.0.0"}
   ]
 end
 ```
@@ -32,14 +32,16 @@ end
 def deps do
   [
     {:jason, "~> 1.0"},
-    {:castore, "~> 0.1.0", optional: true},
-    {:mint, github: "ericmj/mint", branch: "master"},
-    {:dlex, "~> 0.5.0"}
+    {:castore, "~> 1.0.7", optional: true},
+    {:mint, "~> 1.5", optional: true},
+    {:dlex, "~> 1.0.0"}
   ]
 end
 ```
 
 ## Usage examples
+
+### Basic Usage
 
 ```elixir
 # try to connect to `localhost:9080` by default
@@ -48,7 +50,7 @@ end
 # clear any data in the graph
 Dlex.alter!(conn, %{drop_all: true})
 
-# add a term index on then `name` predicate
+# add a term index on the `name` predicate
 {:ok, _} = Dlex.alter(conn, "name: string @index(term) .")
 
 # add nodes, returning the uids in the response
@@ -147,8 +149,8 @@ defmodule App.Courses.Course do
       :status,
       :has_learning_path
     ])
+  end
 end
-
 ```
 
 #### Update the schema
@@ -162,6 +164,24 @@ iex> Grepo.snapshot()
 # To execute the update (alter_schema uses snapshot() by default and can be omitted)
 iex> Grepo.snapshot() |> Grepo.alter_schema()
 
+iex> new_schema = [
+  %{
+    "predicate" => "name",
+    "type" => "string",
+    "index" => true,
+    "tokenizer" => ["term"]
+  },
+  %{
+    "predicate" => "age",
+    "type" => "int"
+  },
+  %{
+    "predicate" => "friend",
+    "type" => "[uid]"
+  }
+]
+
+iex> Grepo.alter_schema(new_schema)
 ```
 
 #### Define the context
@@ -177,8 +197,6 @@ defmodule App.Courses do
   alias App.Grepo
   alias App.Courses.Course
 
-  ...
-
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking course changes.
 
@@ -186,7 +204,6 @@ defmodule App.Courses do
 
       iex> change_course(course)
       %Ecto.Changeset{source: %Course{}}
-
   """
   def change_course(%Course{} = course) do
     Course.changeset(course, %{})
@@ -202,7 +219,6 @@ defmodule App.Courses do
 
       iex> create_course(%{field: bad_value})
       {:error, %Ecto.Changeset{}}
-
   """
   def create_course(attrs \\ %{}) do
     %Course{}
@@ -210,16 +226,12 @@ defmodule App.Courses do
     |> Grepo.set()
   end
 
-  ...
-
   def course_statuses() do
     [
       {"Published", 1},
       {"Unpublished", 2}
     ]
   end
-
-  ...
 end
 ```
 
@@ -305,6 +317,36 @@ defmodule AppWeb.Admin.CourseController do
 end
 ```
 
+### Elixir LiveView
+
+Define a LiveView
+
+```elixir
+defmodule MyAppWeb.UserLive.Index do
+  use MyAppWeb, :live_view
+
+  alias MyApp.Grepo
+  alias MyApp.User
+
+  @impl true
+  def mount(_params, _session, socket) do
+    {:ok, fetch_users(socket)}
+  end
+
+  defp fetch_users(socket) do
+    query = "{users(func: type(User)) {uid name age}}"
+    {:ok, %{"users" => users}} = Grepo.all(query)
+    assign(socket, users: users)
+  end
+
+  @impl true
+  def handle_event("delete", %{"uid" => uid}, socket) do
+    {:ok, _} = Grepo.delete(%{uid: uid})
+    {:noreply, fetch_users(socket)}
+  end
+end
+```
+
 ## Developers guide
 
 ### Running tests
@@ -321,7 +363,7 @@ NOTE: You may stop the server using `./stop-server.sh`
 #### Install development dependencies
 
 1. Install `protoc`(cpp) [here](https://github.com/google/protobuf/blob/master/src/README.md) or `brew install protobuf` on MacOS.
-2. Install protoc plugin `protoc-gen-elixir` for Elixir . NOTE: You have to make sure `protoc-gen-elixir`(this name is important) is in your PATH.
+2. Install protoc plugin `protoc-gen-elixir` for Elixir. NOTE: You have to make sure `protoc-gen-elixir` (this name is important) is in your PATH.
 
 ```bash
 mix escript.install hex protobuf
@@ -337,21 +379,19 @@ protoc --elixir_out=plugins=grpc:. lib/api.proto
 
 4. Files `lib/api.pb.ex` will be generated
 
-5. Rename `lib/api.pb.ex` to `lib/dlex/api.ex` and add `alias Dlex.Api` to be compliant with Elixir naming
+5. Rename `lib/api.pb.ex` to `lib/dlex/api.ex` and add `alias Dlex.Api` to be compliant with Elixir naming conventions
 
 ## Credits
 
-Inspired by [exdgraph](https://github.com/ospaarmann/exdgraph), but as I saw too many parts for changes or parts, which I would like to have completely different, so that it was easier to start from scratch with these goals: small codebase, small natural abstraction, efficient, less opinionated, less dependencies.
+Inspired by [exdgraph](https://github.com/ospaarmann/exdgraph), but with significant differences to achieve goals of a small codebase, efficient natural abstraction, and fewer dependencies.
 
-So you can choose freely which pool implementation to use (poolboy or db_connection intern pool implementation) or which JSON adapter to use. Fewer dependencies.
+You can freely choose which pool implementation to use (poolboy or db_connection internal pool implementation) or which JSON adapter to use. Fewer dependencies.
 
-It seems for me more natural to have API names more or less matching actual query names.
+It feels more natural to have API names closely matching actual query names.
 
-For example `Dlex.mutate()` instead of `ExDgraph.set_map` for JSON-based mutations. Actually, `Dlex.mutate` infers the type (JSON or nquads) from data passed to a function.
+For example, `Dlex.mutate()` instead of `ExDgraph.set_map` for JSON-based mutations. `Dlex.mutate` infers the type (JSON or nquads) from the data passed to a function.
 
 ## License
-
-   Copyright 2018 Dmitry Russ
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
