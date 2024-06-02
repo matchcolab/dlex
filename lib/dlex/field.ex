@@ -1,5 +1,20 @@
 defmodule Dlex.Field do
-  @type type :: :integer | :float | :string | :geo | :datetime | :uid | :auto
+  @type type ::
+          :string
+          | :integer
+          | :float
+          | :boolean
+          | :datetime
+          | :dateTime
+          | :geo
+          | :password
+          | :list
+          | :set
+          | :uid
+          | :default
+          | :bytes
+          | :map
+          | :auto
 
   @type t :: %__MODULE__{
           name: atom(),

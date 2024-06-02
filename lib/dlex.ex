@@ -29,19 +29,19 @@ defmodule Dlex do
 
   ## Options
 
-    * `:hostname` - Server hostname (default: DGRAPH_HOST, than `localhost`)
+    * `:hostname` - Server hostname (default: DGRAPH_HOST, then `localhost`)
     * `:port` - Server port (default: DGRAPH_PORT env var, then 9080)
     * `:keepalive` - Keepalive option for http client (default: `:infinity`)
     * `:json_library` - Specifies json library to use (default: `Jason`)
     * `:transport` - Specify if grpc or http should be used (default: `grpc`)
-    * `:connect_timeout` - Connection timeout in milliseconds (default: `#{@timeout}`);
+    * `:connect_timeout` - Connection timeout in milliseconds (default: `#{@timeout}`)
 
-  ### SSL/TLS configuration (automaticly enabled, if required files provided)
+  ### SSL/TLS configuration (automatically enabled, if required files provided)
 
     * `:cacertfile` - Path to your CA certificate. Should be provided for SSL authentication
-    * `:certfile` - Path to client certificate. Should be additionally provided for TSL
+    * `:certfile` - Path to client certificate. Should be additionally provided for TLS
       authentication
-    * `:keyfile` - Path to client key. Should be additionally provided for TSL authentication
+    * `:keyfile` - Path to client key. Should be additionally provided for TLS authentication
 
   ### DBConnection options
 
@@ -163,10 +163,8 @@ defmodule Dlex do
     * `:timeout` - Call timeout (default: `#{@timeout}`)
 
   """
-
   @spec set(conn, query_map, statement, Keyword.t()) ::
           {:ok, map} | {:error, Dlex.Error.t() | term}
-
   def set(conn, query, statement, opts), do: mutate(conn, query, %{set: statement}, opts)
 
   @doc """
@@ -211,7 +209,7 @@ defmodule Dlex do
   Runs a mutation and returns the result or raises `Dlex.Error` if there was an error.
   See `set/2`.
   """
-  @spec mutate!(conn, statement) :: map | no_return
+  @spec set!(conn, statement) :: map | no_return
   def set!(conn, statement) do
     case mutate(conn, %{}, %{set: statement}, []) do
       {:ok, result} -> result
@@ -253,7 +251,6 @@ defmodule Dlex do
 
     * `:timeout` - Call timeout (default: `#{@timeout}`)
   """
-
   @spec mutate(conn, query_map, mutations, Keyword.t()) ::
           {:ok, map} | {:error, Dlex.Error.t() | term}
 
@@ -378,7 +375,7 @@ defmodule Dlex do
   Runs a mutation with delete target and returns the result or raises `Dlex.Error` if there was
   an error. See `delete/3`.
   """
-  @spec delete(conn, query | statement, statement | Keyword.t()) :: map | no_return
+  @spec delete!(conn, query | statement, statement | Keyword.t()) :: map | no_return
   def delete!(conn, query_or_statement, statement_or_opts) do
     case delete(conn, query_or_statement, statement_or_opts) do
       {:ok, result} -> result
@@ -390,7 +387,7 @@ defmodule Dlex do
   Runs a mutation with delete target and returns the result or raises `Dlex.Error` if there was
   an error. See `delete/2`.
   """
-  @spec delete(conn, statement) :: map | no_return
+  @spec delete!(conn, statement) :: map | no_return
   def delete!(conn, statement) do
     case mutate(conn, %{}, %{delete: statement}, []) do
       {:ok, result} -> result
@@ -452,7 +449,7 @@ defmodule Dlex do
   def query_schema!(conn), do: query!(conn, "schema {}")
 
   @doc """
-  Execute serie of queries and mutations in a transactions
+  Execute series of queries and mutations in a transaction
   """
   @spec transaction(conn, (DBConnection.t() -> result :: any), Keyword.t()) ::
           {:ok, result :: any} | {:error, any}

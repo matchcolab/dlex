@@ -12,7 +12,7 @@ defmodule Dlex.Query do
           query: String.t(),
           statement: [mutation] | map | iodata,
           parameters: any,
-          txn_context: Diex.Api.TxnContext.t(),
+          txn_context: Dlex.Api.TxnContext.t(),
           json: atom,
           request: any
         }

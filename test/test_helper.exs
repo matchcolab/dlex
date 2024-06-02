@@ -46,7 +46,7 @@ defmodule Dlex.User do
   schema "user" do
     field :name, :string, index: ["term"]
     field :age, :integer
-    field :friends, :uid
+    field :friends, {:list, :uid}
     field :location, Dlex.Geo
     field :cache, :any, virtual: true
   end

@@ -94,7 +94,7 @@ defmodule DlexTest do
     assert %{"uid" => ^uid, "name" => "Foo", "surname" => "bar"} = get_by_name(pid, "Foo")
   end
 
-  test "query qith different type of parameters", %{pid: pid} do
+  test "query with different type of parameters", %{pid: pid} do
     json = %{
       "name" => "UserFoo",
       "email" => "userfoo@foobar",

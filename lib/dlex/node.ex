@@ -239,7 +239,16 @@ defmodule Dlex.Node do
     string: "string",
     geo: "geo",
     datetime: "datetime",
-    uid: "[uid]"
+    dateTime: "dateTime",
+    password: "password",
+    bool: "bool",
+    list: "list",
+    set: "set",
+    uid: "uid",
+    default: "default",
+    bytes: "bytes",
+    map: "map",
+    auto: "auto"
   ]
 
   for {type, dgraph_type} <- @types_mapping do
@@ -248,6 +257,14 @@ defmodule Dlex.Node do
 
   @primitive_types Keyword.keys(@types_mapping)
   def primitive_type?(type), do: type in @primitive_types
+
+  defp db_type({:list, inner_type}) do
+    "[#{primitive_type(inner_type)}]"
+  end
+
+  defp db_type({:set, inner_type}) do
+    "[#{primitive_type(inner_type)}]"
+  end
 
   defp db_type(type) do
     if primitive_type?(type), do: primitive_type(type), else: primitive_type(type.type)
