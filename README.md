@@ -1,5 +1,7 @@
 # Dlex
 
+Original source: https://github.com/elbow-jason/dgraph_ex
+
 [![Hex pm](http://img.shields.io/hexpm/v/dlex.svg?style=flat)](https://hex.pm/packages/dlex)
 [![CircleCI](https://circleci.com/gh/liveforeverx/dlex.svg?style=svg)](https://circleci.com/gh/liveforeverx/dlex)
 

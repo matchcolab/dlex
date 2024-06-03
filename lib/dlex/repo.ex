@@ -55,6 +55,8 @@ defmodule Dlex.Repo do
       def get(uid), do: Dlex.Repo.get(@name, meta(), uid)
       def get!(uid), do: Dlex.Repo.get!(@name, meta(), uid)
 
+      def get_by(field, value), do: Dlex.Repo.get_by(@name, field, value)
+
       def all(query, params \\ %{}), do: Dlex.Repo.all(@name, query, params, meta())
 
       def meta(), do: Dlex.Repo.Meta.get(@meta_name)
