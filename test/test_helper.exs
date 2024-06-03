@@ -1,6 +1,6 @@
 defmodule Dlex.TestHelper do
   @dlex_adapter :"#{System.get_env("DLEX_ADAPTER", "grpc")}"
-  @offset String.to_integer(System.get_env("DLEX_PORT_OFFSET", "0"))
+  @offset String.to_integer(System.get_env("DLEX_PORT_OFFSET", "2"))
 
   def opts() do
     case @dlex_adapter do

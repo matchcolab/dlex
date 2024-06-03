@@ -431,6 +431,13 @@ end
 
 </details>
 
+Dlex expects DGraph ports with offset +2 from standard ports for test database. It can be managed by env variable "DLEX_PORT_OFFSET"
+
+```bash
+docker run -it -p 5082:5080 -p 6082:6080 -p 8082:8080 -p 9082:9080 -p 8002:8000 -v $(pwd)/dgraph-test:/dgraph --name dgraph-test dgraph/standalone:latest
+```
+
+
 
 ## Developers guide
 
