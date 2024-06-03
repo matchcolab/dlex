@@ -5,7 +5,6 @@ defmodule Dlex.Field do
           | :float
           | :boolean
           | :datetime
-          | :dateTime
           | :geo
           | :password
           | :list

@@ -347,6 +347,89 @@ defmodule MyAppWeb.UserLive.Index do
 end
 ```
 
+<details>
+  <summary>DGraph data type</summary>
+
+  Dgraph supports various data types that allow for flexible and powerful schema definitions. Here is a list of the supported types:
+
+  1. **Scalar Types**:
+     - `string`: A sequence of characters.
+     - `int`: An integer value.
+     - `float`: A floating-point number.
+     - `bool`: A boolean value (true or false).
+     - `datetime`: Date and time values.
+     - `geo`: Geospatial data (e.g., points, polygons).
+     - `password`: A hashed password string.
+
+  2. **Collection Types**:
+     - `list`: A list of values of a specific type.
+     - `set`: A set of unique values of a specific type.
+
+  3. **Uid Type**:
+     - `uid`: A unique identifier used to represent edges between nodes.
+
+  4. **Default Types**:
+     - `default`: Used for predicates where the type is not explicitly specified. This type is inferred based on the data provided.
+
+  5. **Other Types**:
+     - `dateTime`: Another notation for datetime values.
+     - `default`: This type is used when the type is not specified and will be inferred from the provided data.
+
+  ### Example Schema Definition
+
+  ```graphql
+  type User {
+    username: string @index(exact) .
+    age: int @index(int) .
+    balance: float .
+    registered: datetime .
+    location: geo @index(geo) .
+    friends: [uid] @reverse .
+    password: password .
+  }
+  ```
+
+  ### Using the Types in Dgraph Schema
+
+  - **String**:
+    ```graphql
+    name: string @index(term) .
+    ```
+  - **Int**:
+    ```graphql
+    age: int @index(int) .
+    ```
+  - **Float**:
+    ```graphql
+    balance: float .
+    ```
+  - **Bool**:
+    ```graphql
+    isActive: bool .
+    ```
+  - **Datetime**:
+    ```graphql
+    registered: datetime .
+    ```
+  - **Geo**:
+    ```graphql
+    location: geo @index(geo) .
+    ```
+  - **Password**:
+    ```graphql
+    password: password .
+    ```
+  - **Uid**:
+    ```graphql
+    friend: uid @reverse .
+    ```
+
+  ### Reference
+  For detailed information and updates, you can refer to the [official Dgraph documentation on schema](https://dgraph.io/docs/query-language/schema/).
+
+</details>
+
+
 ## Developers guide
 
 ### Running tests

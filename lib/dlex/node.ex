@@ -47,7 +47,6 @@ defmodule Dlex.Node do
       * `:set`
       * `:uid`
       * `:default`
-      * `:dateTime`
       * `:default`
       * `:auto` - special type, which can be used for `depends_on`
 
@@ -246,7 +245,6 @@ defmodule Dlex.Node do
     string: "string",
     geo: "geo",
     datetime: "datetime",
-    dateTime: "dateTime",
     password: "password",
     bool: "bool",
     list: "list",
